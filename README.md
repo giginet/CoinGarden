@@ -15,5 +15,6 @@ them. Two 500-yen coins cash out, and cascades multiply your score.
 Press **PLAY** after loading. Desktop browsers or landscape orientation work
 best. Best scores and sound preferences are saved in your browser.
 
-This repository contains the deployable web build. GitHub Pages serves the
-root of the `main` branch; `.nojekyll` preserves the exported files unchanged.
+This branch contains the deployable web build. The Godot project is on `main`.
+GitHub Pages serves the root of `gh-pages`; `.nojekyll` preserves the exported
+files unchanged.
