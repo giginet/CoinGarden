@@ -1,0 +1,17 @@
+{
+  "title": "Coin Rush",
+  "generator": "ACE Studio Inspire Me",
+  "source": "coin_rush_source.mp3",
+  "bars": 32,
+  "start_bar_index": 48,
+  "end_bar_index": 80,
+  "estimated_bpm": 172.3896230614081,
+  "start_seconds": 67.10999938964844,
+  "end_seconds": 111.65000030517578,
+  "loop_seconds": 44.54,
+  "tail_crossfade_seconds": 1.38,
+  "crossfade_method": "beat-aligned lead-in, correlation-aware equal-power",
+  "head_attack_preserved": true,
+  "peak_dbfs_before_encoding": -2,
+  "sample_rate": 44100
+}

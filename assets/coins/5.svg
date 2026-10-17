@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><linearGradient id="metal" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#ffe9a0"/><stop offset="0.46" stop-color="#d4ac4d"/><stop offset="1" stop-color="#ae7d2d"/></linearGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe9a0"/><stop offset="0.5" stop-color="#ae7d2d"/><stop offset="1" stop-color="#ffe9a0"/></linearGradient></defs>
+<path d="M128 3a125 125 0 1 0 0 250a125 125 0 1 0 0-250Z M128 66a20 20 0 1 0 0 40a20 20 0 1 0 0-40Z" fill="url(#metal)" fill-rule="evenodd" stroke="#ae7d2d" stroke-width="4"/>
+<circle cx="128" cy="128" r="116" fill="none" stroke="url(#rim)" stroke-width="6"/>
+<circle cx="128" cy="128" r="105" fill="none" stroke="#9b742c" stroke-width="1.5" opacity="0.55"/>
+<circle cx="128" cy="86" r="22" fill="none" stroke="#9b742c" stroke-width="3"/><path d="M107 85a21 21 0 0 1 42 0" fill="none" stroke="#ffe9a0" stroke-width="2"/>
+<g transform="translate(128 128) scale(1 1)" fill="none" stroke="#9b742c" opacity="0.7" stroke-width="2.5" stroke-linecap="round"><path d="M-10 76 Q-78 61 -70 -29"/>
+<path d="M-30 67q-22 -1 -19 -17q17 1 19 17M-30 67q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-39 49q-22 -1 -19 -17q17 1 19 17M-39 49q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-48 31q-22 -1 -19 -17q17 1 19 17M-48 31q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-57 13q-22 -1 -19 -17q17 1 19 17M-57 13q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-66 -5q-22 -1 -19 -17q17 1 19 17M-66 -5q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+</g>
+<g transform="translate(128 128) scale(-1 1)" fill="none" stroke="#9b742c" opacity="0.7" stroke-width="2.5" stroke-linecap="round"><path d="M-10 76 Q-78 61 -70 -29"/>
+<path d="M-30 67q-22 -1 -19 -17q17 1 19 17M-30 67q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-39 49q-22 -1 -19 -17q17 1 19 17M-39 49q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-48 31q-22 -1 -19 -17q17 1 19 17M-48 31q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-57 13q-22 -1 -19 -17q17 1 19 17M-57 13q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+<path d="M-66 -5q-22 -1 -19 -17q17 1 19 17M-66 -5q16 -8 8 -22q-13 8 -8 22" fill="#9b742c" fill-opacity="0.28"/>
+</g>
+<path d="M117 215h22M122 222h12" stroke="#9b742c" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>

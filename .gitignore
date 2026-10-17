@@ -1,0 +1,10 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+/build/
+/.serena/
+/.codex/
+/.agents/
+.DS_Store
+/tools/audio/Coin Rush/
+/tools/audio/ace_generation.json

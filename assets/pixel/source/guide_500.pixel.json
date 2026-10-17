@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "width": 13,
+  "height": 13,
+  "color_mode": 32,
+  "transparent": true,
+  "palette": [
+    {
+      "name": "clear",
+      "rgb": null
+    },
+    {
+      "name": "ink",
+      "rgb": "#17152b"
+    },
+    {
+      "name": "deep",
+      "rgb": "#24233d"
+    },
+    {
+      "name": "night",
+      "rgb": "#323454"
+    },
+    {
+      "name": "wall",
+      "rgb": "#454363"
+    },
+    {
+      "name": "wall_light",
+      "rgb": "#575377"
+    },
+    {
+      "name": "lavender",
+      "rgb": "#7d7395"
+    },
+    {
+      "name": "mist",
+      "rgb": "#aaa2bc"
+    },
+    {
+      "name": "silver_shadow",
+      "rgb": "#667e96"
+    },
+    {
+      "name": "silver",
+      "rgb": "#9fb3bb"
+    },
+    {
+      "name": "silver_light",
+      "rgb": "#d7e6d6"
+    },
+    {
+      "name": "ivory",
+      "rgb": "#fff1c5"
+    },
+    {
+      "name": "burgundy",
+      "rgb": "#593448"
+    },
+    {
+      "name": "pink_shadow",
+      "rgb": "#945069"
+    },
+    {
+      "name": "rose",
+      "rgb": "#c8768a"
+    },
+    {
+      "name": "pink",
+      "rgb": "#efa1a2"
+    },
+    {
+      "name": "peach",
+      "rgb": "#ffd0af"
+    },
+    {
+      "name": "copper_dark",
+      "rgb": "#6c423f"
+    },
+    {
+      "name": "copper",
+      "rgb": "#ab6750"
+    },
+    {
+      "name": "copper_light",
+      "rgb": "#e5a167"
+    },
+    {
+      "name": "gold_shadow",
+      "rgb": "#9d672f"
+    },
+    {
+      "name": "gold",
+      "rgb": "#c99743"
+    },
+    {
+      "name": "gold_light",
+      "rgb": "#f5d478"
+    },
+    {
+      "name": "gold_pale",
+      "rgb": "#fff0ad"
+    },
+    {
+      "name": "green_shadow",
+      "rgb": "#284749"
+    },
+    {
+      "name": "green",
+      "rgb": "#476957"
+    },
+    {
+      "name": "green_light",
+      "rgb": "#85a875"
+    },
+    {
+      "name": "wood_shadow",
+      "rgb": "#382735"
+    },
+    {
+      "name": "wood",
+      "rgb": "#654650"
+    },
+    {
+      "name": "wood_light",
+      "rgb": "#93645d"
+    },
+    {
+      "name": "blue",
+      "rgb": "#5385a1"
+    },
+    {
+      "name": "sky",
+      "rgb": "#89bdc7"
+    }
+  ],
+  "pixels": [
+    [0,0,0,0,0,0,22,0,0,0,0,0,0],
+    [0,0,0,22,23,23,23,23,22,22,0,0,0],
+    [0,0,22,22,21,21,21,21,21,22,22,0,0],
+    [0,1,22,21,21,21,21,21,21,21,22,1,0],
+    [0,17,17,17,21,17,17,17,21,17,17,17,0],
+    [0,17,21,21,21,17,21,17,21,17,21,17,0],
+    [1,17,17,17,21,17,21,17,21,17,21,17,1],
+    [0,22,21,17,21,17,21,17,21,17,21,17,0],
+    [0,17,17,17,21,17,17,17,21,17,17,17,0],
+    [0,1,22,21,21,21,21,21,21,21,22,1,0],
+    [0,0,1,22,21,21,21,21,21,22,1,0,0],
+    [0,0,0,1,1,1,22,1,1,1,0,0,0],
+    [0,0,0,0,0,0,1,0,0,0,0,0,0]
+  ]
+}
