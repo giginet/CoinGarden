@@ -99,7 +99,7 @@ UV_CACHE_DIR=/tmp/exchanger-uv-cache UV_PROJECT_ENVIRONMENT=/tmp/exchanger-pixel
 
 `bash tools/export_web.sh` で `build/web/` にWeb版を書き出します。初回はGodot 4.7.2公式配布からシングルスレッド用Webテンプレートだけを取得します。別の場所にGodotがある場合は `GODOT_BIN` で実行ファイルを指定してください。ローカル確認は `python3 -m http.server 8765 --directory build/web` で起動し、ブラウザで開きます。
 
-GitHub Pagesは `gh-pages` ブランチを配信します。初めて再公開する環境では `git clone --branch gh-pages --single-branch https://github.com/giginet/CoinGarden.git build/web` で配信用チェックアウトを用意し、書き出し後にこのディレクトリで変更をコミットして `git push origin gh-pages` してください。生成物は `.nojekyll` でそのまま配信されます。ブラウザでは最初にPLAYを押して起動します。デスクトップ版のセーブ保存先は維持しています。
+GitHub Pagesは `gh-pages` ブランチを配信します。初めて再公開する環境では `git clone --branch gh-pages --single-branch https://github.com/giginet/CoinGarden.git build/web` で配信用チェックアウトを用意し、書き出し後にこのディレクトリで変更をコミットして `git push origin gh-pages` してください。生成物は `.nojekyll` でそのまま配信されます。ブラウザでは読み込み後すぐにゲームが始まります。ブラウザの自動再生制限により音声は初回のクリックやキー操作後に有効になる場合があります。デスクトップ版のセーブ保存先は維持しています。
 
 ## BGM・効果音
 

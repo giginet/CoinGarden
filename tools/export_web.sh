@@ -9,7 +9,6 @@ if [[ ! -f build/templates/web_nothreads_release.zip ]]; then
   python3 tools/download_web_templates.py
 fi
 "$GODOT_BIN" --headless --path "$PROJECT_DIR" --export-release Web build/web/index.html
-cp assets/pixel/coins/500.png build/web/coin.png
 cp web/README.md build/web/README.md
 touch build/web/.nojekyll
 echo "Web build: $PROJECT_DIR/build/web/index.html"

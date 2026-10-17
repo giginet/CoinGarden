@@ -12,8 +12,10 @@ them. Two 500-yen coins cash out, and cascades multiply your score.
 - Escape / P: pause.
 - Music-note button: toggle sound.
 
-Press **PLAY** after loading. Desktop browsers or landscape orientation work
-best. Best scores and sound preferences are saved in your browser.
+The game starts automatically after loading. Desktop browsers or landscape
+orientation work best. Browser autoplay restrictions may require one click or
+key press before audio plays. Best scores and sound preferences are saved in
+your browser.
 
 This branch contains the deployable web build. The Godot project is on `main`.
 GitHub Pages serves the root of `gh-pages`; `.nojekyll` preserves the exported
