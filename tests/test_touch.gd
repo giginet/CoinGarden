@@ -86,6 +86,15 @@ func _run() -> void:
 	touch(Vector2(600, 500), true)
 	game._game_over()
 	check(game.active_touch == -1, "game over cancels gesture capture")
+	# Browsers pass opaque touch identifiers; signed values must work too.
+	for touch_id in [-2147483647, -1, 2147483647]:
+		game.restart()
+		touch(Vector2(520, 500), true, touch_id)
+		check(game.has_active_touch and game.coins.is_empty(), "capture touch ID %d without dropping early" % touch_id)
+		drag(Vector2(700, 500), touch_id)
+		check(game.aim_x == 700, "drag follows touch ID %d" % touch_id)
+		touch(Vector2(700, 500), false, touch_id)
+		check(game.coins.size() == 1 and not game.has_active_touch, "release drops exactly once for touch ID %d" % touch_id)
 	game.audio.music.stop()
 	game.audio.stop_effects()
 	await create_timer(0.1).timeout

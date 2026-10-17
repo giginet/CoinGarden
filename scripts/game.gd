@@ -30,6 +30,7 @@ var current_tier := 0
 var upcoming: Array[int] = []
 var aim_x := 640.0
 var active_touch := -1
+var has_active_touch := false
 var cooldown := 0.0
 var danger := 0.0
 var ended := false
@@ -301,7 +302,7 @@ func _finish_start() -> void:
 	queue_redraw()
 
 func restart() -> void:
-	active_touch = -1
+	_clear_touch()
 	for tween in [intro_tween, result_tween]:
 		if tween and tween.is_valid():
 			tween.kill()
@@ -352,7 +353,7 @@ func _toggle_pause() -> void:
 	if ended or starting or waiting_for_start:
 		return
 	suspended = not suspended
-	active_touch = -1
+	_clear_touch()
 	for coin in coins:
 		coin.freeze = suspended or coin.merging
 		coin.set_physics_process(not suspended)
@@ -381,13 +382,13 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	# Capture an existing gesture even if the finger leaves the jar or crosses UI.
-	if active_touch >= 0:
+	if has_active_touch:
 		if event is InputEventScreenDrag and event.index == active_touch:
 			_set_aim(event.position.x)
 			get_viewport().set_input_as_handled()
 			return
 		if event is InputEventScreenTouch and event.index == active_touch and not event.pressed:
-			active_touch = -1
+			_clear_touch()
 			if not event.canceled:
 				_set_aim(event.position.x)
 				_drop()
@@ -406,12 +407,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventScreenTouch:
 		# A tap and a drag both commit on release, never on touch-down.
-		if event.pressed and not event.canceled and active_touch < 0 and _inside_drop_area(event.position):
+		if event.pressed and not event.canceled and not has_active_touch and _inside_drop_area(event.position):
 			active_touch = event.index
+			has_active_touch = true
 			_set_aim(event.position.x)
 			get_viewport().set_input_as_handled()
 		return
-	if active_touch >= 0:
+	if has_active_touch:
 		return
 	if event is InputEventMouseMotion:
 		_set_aim(event.position.x)
@@ -422,7 +424,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		active_touch = -1
+		_clear_touch()
+
+func _clear_touch() -> void:
+	# Web touch identifiers are opaque signed integers, including -1. Keep the
+	# gesture state separate so a negative identifier can still drag and release.
+	has_active_touch = false
+	active_touch = -1
 
 func _set_aim(x: float) -> void:
 	var radius: float = Rules.RADII[current_tier]
@@ -558,7 +566,7 @@ func _check_overflow(delta: float) -> void:
 		_game_over()
 
 func _game_over() -> void:
-	active_touch = -1
+	_clear_touch()
 	if ended:
 		return
 	if intro_tween and intro_tween.is_valid():
