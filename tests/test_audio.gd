@@ -27,11 +27,14 @@ func _run() -> void:
 	var audio = game.audio
 	check(audio.music.stream != null, "packaged music loads")
 	if audio.music.stream:
-		check(audio.music.stream.loop and audio.music.stream.get_length() > 20, "music loops a full gameplay phrase")
+		check(audio.music.stream.loop and audio.music.stream.get_length() > 100, "music includes the original song opening before the loop")
+		check(is_equal_approx(audio.music.stream.loop_offset, 85.21), "repeats use the matched phrase rather than replaying the intro")
 	check(audio.music.playing and audio.music.volume_db <= -80, "saved mute starts music silently")
+	check(audio.music.get_playback_position() < 1.0, "first playback starts at the beginning of the song")
 	audio.music.seek(audio.music.stream.get_length() - 0.1)
 	await create_timer(0.35).timeout
-	check(audio.music.playing and audio.music.get_playback_position() < 1.0, "BGM wraps across the actual end of its stream")
+	var loop_start: float = audio.music.stream.loop_offset
+	check(audio.music.playing and audio.music.get_playback_position() >= loop_start and audio.music.get_playback_position() < loop_start + 1.0, "BGM wraps to its loop point after the original opening (position %.3f)" % audio.music.get_playback_position())
 	audio.music.seek(12.0)
 	await create_timer(0.1).timeout
 	var running_position: float = audio.music.get_playback_position()

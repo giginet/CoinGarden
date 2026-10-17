@@ -1,9 +1,10 @@
-"""Build the gameplay loop from ACE Studio's source and detected downbeats.
+"""Preserve the song opening and build its repeating gameplay section.
 
 Requires NumPy and ffmpeg. The original generation and beat analysis are kept
 beside this script's inputs so the loop can be rebuilt without spending credits.
 """
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -44,29 +45,39 @@ for offset in range(-round(0.04 * RATE), round(0.04 * RATE) + 1):
     if correlation > best_correlation:
         best_correlation, finish = correlation, candidate
 assert best_correlation > 0.45, 'The repeated passages no longer match'
-loop = samples[begin:finish].copy()
+# Keep the original opening for the first play. Only subsequent repeats jump
+# to `begin`, through Godot's loop_offset rather than by trimming the file.
+playback = samples[:finish].copy()
 # Only bridge the last 80 ms into the original audio immediately before the
 # head. Matching material needs no full-bar crossfade or beat/pitch warping.
 # Linear complementary gains avoid a volume bump with correlated waveforms.
 fade_size = round(0.08 * RATE)
 lead = samples[begin - fade_size:begin]
 weight = np.linspace(0.0, 1.0, fade_size)[:, None]
-loop[-fade_size:] = loop[-fade_size:] * (1.0 - weight) + lead * weight
-peak = float(np.max(np.abs(loop)))
-loop *= 10 ** (-2 / 20) / max(peak, 1e-6)
+playback[-fade_size:] = playback[-fade_size:] * (1.0 - weight) + lead * weight
+peak = float(np.max(np.abs(playback)))
+playback *= 10 ** (-2 / 20) / max(peak, 1e-6)
 OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 subprocess.run([
     FFMPEG, '-v', 'error', '-y', '-f', 'f32le', '-ar', str(RATE), '-ac', '2',
     '-i', '-', '-c:a', 'libvorbis', '-q:a', '6',
-    '-metadata', 'title=Coin Rush', '-metadata', 'comment=ACE Studio original chiptune; matched-phrase 16-bar gameplay loop',
+    '-metadata', 'title=Coin Rush', '-metadata', 'comment=ACE Studio original chiptune; original opening followed by a matched-phrase 16-bar loop',
     str(OUTPUT),
-], input=loop.astype('<f4').tobytes(), check=True)
+], input=playback.astype('<f4').tobytes(), check=True)
+# Keep the imported resource and the generated audio synchronized on rebuild.
+import_path = OUTPUT.with_suffix('.ogg.import')
+import_settings = import_path.read_text()
+import_settings = re.sub(r'^loop=.*$', 'loop=true', import_settings, flags=re.M)
+import_settings = re.sub(r'^loop_offset=.*$', f'loop_offset={begin / RATE}', import_settings, flags=re.M)
+import_path.write_text(import_settings)
 metadata = {
     'title': 'Coin Rush', 'generator': 'ACE Studio Inspire Me',
     'source': 'coin_rush_source.mp3', 'bars': END_BAR - START_BAR,
     'start_bar_index': START_BAR, 'end_bar_index': END_BAR,
     'estimated_bpm': analysis['bpm'], 'start_seconds': start, 'end_seconds': finish / RATE,
-    'loop_seconds': len(loop) / RATE, 'tail_crossfade_seconds': fade_size / RATE,
+    'first_play_start_seconds': 0.0, 'loop_offset_seconds': begin / RATE,
+    'file_seconds': len(playback) / RATE,
+    'loop_seconds': (finish - begin) / RATE, 'tail_crossfade_seconds': fade_size / RATE,
     'crossfade_method': '80 ms complementary blend into matching phrase lead-in',
     'seam_waveform_correlation': best_correlation,
     'end_adjustment_seconds': (finish - nominal_finish) / RATE,
@@ -81,7 +92,7 @@ decoded = subprocess.check_output([
     '-f', 'f32le', '-',
 ])
 decoded = np.frombuffer(decoded, dtype='<f4').reshape(-1, 2)
-preview = np.concatenate([decoded[-6 * RATE:], decoded[:8 * RATE]])
+preview = np.concatenate([decoded[-6 * RATE:], decoded[begin:begin + 8 * RATE]])
 subprocess.run([
     FFMPEG, '-v', 'error', '-y', '-f', 'f32le', '-ar', str(RATE), '-ac', '2',
     '-i', '-', '-c:a', 'pcm_s16le', str(ROOT / 'docs/bgm-loop-preview.wav'),

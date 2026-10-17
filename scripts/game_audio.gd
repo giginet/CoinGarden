@@ -30,6 +30,8 @@ func _ready() -> void:
 	music.name = "Music"
 	add_child(music)
 	var stream := MUSIC.duplicate() as AudioStreamOggVorbis
+	# The imported loop_offset preserves the original intro on the first play;
+	# the audio decoder returns to the matched phrase only when it reaches EOF.
 	stream.loop = true
 	music.stream = stream
 	for i in 8:
