@@ -29,6 +29,7 @@ var chain := 0
 var current_tier := 0
 var upcoming: Array[int] = []
 var aim_x := 640.0
+var active_touch := -1
 var cooldown := 0.0
 var danger := 0.0
 var ended := false
@@ -161,8 +162,10 @@ func _build_ui() -> void:
 	# Additional statistics remain available in the pause / result sheet.
 	cleared_label = _label("", Vector2.ZERO, Vector2.ZERO, 13)
 	status_label = _label("", Vector2.ZERO, Vector2.ZERO, 13)
-	next_label = _label("", Vector2.ZERO, Vector2.ZERO, 13)
-	for label in [cleared_label, status_label, next_label]:
+	next_label = _label("NEXT", Vector2(680, 24), Vector2(120, 32), 32, ORANGE)
+	_label("2", Vector2(880, 52), Vector2(32, 32), 32, MUTED)
+	_label("3", Vector2(1024, 52), Vector2(32, 32), 32, MUTED)
+	for label in [cleared_label, status_label]:
 		label.hide()
 	_build_coin_guide()
 	sound_button = _button("♪", Vector2(1138, 48), Vector2(48, 48), _toggle_sound)
@@ -251,6 +254,7 @@ func _finish_start() -> void:
 	queue_redraw()
 
 func restart() -> void:
+	active_touch = -1
 	for tween in [intro_tween, result_tween]:
 		if tween and tween.is_valid():
 			tween.kill()
@@ -298,6 +302,7 @@ func _toggle_pause() -> void:
 	if ended or starting:
 		return
 	suspended = not suspended
+	active_touch = -1
 	for coin in coins:
 		coin.freeze = suspended or coin.merging
 		coin.set_physics_process(not suspended)
@@ -320,6 +325,19 @@ func _toggle_pause() -> void:
 	queue_redraw()
 
 func _input(event: InputEvent) -> void:
+	# Capture an existing gesture even if the finger leaves the jar or crosses UI.
+	if active_touch >= 0:
+		if event is InputEventScreenDrag and event.index == active_touch:
+			_set_aim(event.position.x)
+			get_viewport().set_input_as_handled()
+			return
+		if event is InputEventScreenTouch and event.index == active_touch and not event.pressed:
+			active_touch = -1
+			if not event.canceled:
+				_set_aim(event.position.x)
+				_drop()
+			get_viewport().set_input_as_handled()
+			return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
 			_toggle_pause()
@@ -331,22 +349,30 @@ func _input(event: InputEvent) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if ended or suspended or starting:
 		return
+	if event is InputEventScreenTouch:
+		# A tap and a drag both commit on release, never on touch-down.
+		if event.pressed and not event.canceled and active_touch < 0 and _inside_drop_area(event.position):
+			active_touch = event.index
+			_set_aim(event.position.x)
+			get_viewport().set_input_as_handled()
+		return
+	if active_touch >= 0:
+		return
 	if event is InputEventMouseMotion:
 		_set_aim(event.position.x)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		if _inside_drop_area(event.position):
 			_set_aim(event.position.x)
 			_drop()
-	if event is InputEventScreenDrag:
-		_set_aim(event.position.x)
-	if event is InputEventScreenTouch and not event.pressed:
-		if _inside_drop_area(event.position):
-			_set_aim(event.position.x)
-			_drop()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		active_touch = -1
 
 func _set_aim(x: float) -> void:
 	var radius: float = Rules.RADII[current_tier]
 	aim_x = clampf(x, Stage.mouth_left() + radius + 2, Stage.mouth_right() - radius - 2)
+	queue_redraw()
 
 func _inside_drop_area(at: Vector2) -> bool:
 	var in_belly := at.y >= Stage.CENTER.y and ((at - Stage.CENTER) / Stage.RADII).length_squared() <= 1
@@ -477,6 +503,7 @@ func _check_overflow(delta: float) -> void:
 		_game_over()
 
 func _game_over() -> void:
+	active_touch = -1
 	if ended:
 		return
 	if intro_tween and intro_tween.is_valid():
@@ -524,7 +551,7 @@ func _refresh_ui() -> void:
 	chain_label.tooltip_text = "×%s" % _number(Rules.chain_multiplier(chain)) if chain > 1 else ""
 	chain_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	chain_label.add_theme_color_override("font_color", ORANGE if chain > 1 else INK)
-	next_label.text = "NEXT  %d円     /     あと2枚先まで" % Rules.VALUES[upcoming[0]]
+	next_label.tooltip_text = "NEXT  %d円" % Rules.VALUES[upcoming[0]]
 	status_label.text = "クリック / Space で落とす"
 
 func _score_text(value: int) -> String:
@@ -584,9 +611,17 @@ func _draw() -> void:
 		draw_rect(Rect2(256, 356, floorf(768 * clampf(danger, 0, 1) / 4) * 4, 4), Color("c8768a"))
 	Art.paint(self, 1, Vector2(60, 80), 20, bold)
 	if not upcoming.is_empty():
-		Art.paint(self, upcoming[0], Vector2(724, 80), 40, bold)
-		Art.paint(self, upcoming[1], Vector2(884, 80), 40, bold)
-		Art.paint(self, upcoming[2], Vector2(1044, 80), 40, bold)
+		var slots := [Rect2(656, 16, 152, 136), Rect2(840, 48, 112, 104), Rect2(984, 48, 112, 104)]
+		for i in slots.size():
+			var slot: Rect2 = slots[i]
+			draw_rect(Rect2(slot.position + Vector2(4, 4), slot.size), Color("17152b"))
+			draw_rect(slot, ORANGE if i == 0 else Color("575377"))
+			draw_rect(slot.grow(-4), PAPER)
+			Art.paint(self, upcoming[i], Vector2(slot.get_center().x, 108 if i == 0 else 116), 36 if i == 0 else 28, bold)
+		# Left-to-right order, with the immediate next coin emphasized in gold.
+		for x in [816, 960]:
+			for point in [Vector2(0, 0), Vector2(4, 4), Vector2(8, 8), Vector2(4, 12), Vector2(0, 16)]:
+				draw_rect(Rect2(Vector2(x, 96) + point, Vector2(4, 4)), MUTED)
 	if not ended and not suspended and not starting:
 		_draw_aim()
 
