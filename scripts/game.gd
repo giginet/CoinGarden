@@ -35,6 +35,7 @@ var danger := 0.0
 var ended := false
 var suspended := false
 var starting := false
+var waiting_for_start := false
 var max_chain := 0
 var muted := false
 var pending_exchange := false
@@ -55,6 +56,9 @@ var retry_button: Button
 var overlay_shade: ColorRect
 var overlay_card: Panel
 var start_banner: Node2D
+var start_prompt: Button
+var start_prompt_label: Label
+var prompt_tween: Tween
 var intro_tween: Tween
 var result_tween: Tween
 var audio: Node
@@ -63,6 +67,7 @@ var effect_layer: Node2D
 var chipmunk: Node2D
 
 func _ready() -> void:
+	waiting_for_start = _requires_start_gesture()
 	rng.randomize()
 	font = PIXEL_FONT
 	bold = PIXEL_FONT
@@ -231,6 +236,48 @@ func _build_start_banner() -> void:
 	start_banner.position = Vector2(640, 430)
 	layer.add_child(start_banner)
 	start_banner.hide()
+	start_prompt = Button.new()
+	start_prompt.name = "TapToStart"
+	start_prompt.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	start_prompt.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	for state in ["normal", "hover", "pressed", "focus"]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.09, 0.08, 0.17, 0.22)
+		start_prompt.add_theme_stylebox_override(state, style)
+	start_prompt.pressed.connect(_accept_start)
+	layer.add_child(start_prompt)
+	start_prompt_label = _label("TAP TO START", Vector2(280, 396), Vector2(720, 96), 64, ORANGE)
+	start_prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	start_prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	start_prompt_label.reparent(start_prompt)
+	start_prompt.hide()
+
+func _requires_start_gesture() -> bool:
+	return OS.has_feature("web")
+
+func _show_start_prompt() -> void:
+	start_prompt.show()
+	start_prompt.grab_focus()
+	start_prompt_label.modulate.a = 1.0
+	if prompt_tween and prompt_tween.is_valid():
+		prompt_tween.kill()
+	# A gentle 2.8-second pulse; never blink completely out of view.
+	prompt_tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	prompt_tween.tween_property(start_prompt_label, "modulate:a", 0.3, 1.4)
+	prompt_tween.tween_property(start_prompt_label, "modulate:a", 1.0, 1.4)
+
+func _accept_start() -> void:
+	if not waiting_for_start:
+		return
+	waiting_for_start = false
+	if prompt_tween and prompt_tween.is_valid():
+		prompt_tween.kill()
+	start_prompt.hide()
+	start_prompt.release_focus()
+	# The browser has received the gesture before we schedule any audio.
+	audio.restart()
+	_begin_start()
+	queue_redraw()
 
 func _begin_start() -> void:
 	starting = true
@@ -267,7 +314,6 @@ func restart() -> void:
 	coins.clear()
 	effects.clear()
 	chipmunk.reset()
-	audio.restart()
 	score = 0
 	cleared = 0
 	exchanges = 0
@@ -290,7 +336,11 @@ func restart() -> void:
 	retry_button.disabled = false
 	pause_button.text = "Ⅱ"
 	_refresh_ui()
-	_begin_start()
+	if waiting_for_start:
+		_show_start_prompt()
+	else:
+		audio.restart()
+		_begin_start()
 	queue_redraw()
 
 func _request_restart() -> void:
@@ -299,7 +349,7 @@ func _request_restart() -> void:
 		_toggle_pause()
 
 func _toggle_pause() -> void:
-	if ended or starting:
+	if ended or starting or waiting_for_start:
 		return
 	suspended = not suspended
 	active_touch = -1
@@ -325,6 +375,11 @@ func _toggle_pause() -> void:
 	queue_redraw()
 
 func _input(event: InputEvent) -> void:
+	if waiting_for_start:
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]:
+			_accept_start()
+			get_viewport().set_input_as_handled()
+		return
 	# Capture an existing gesture even if the finger leaves the jar or crosses UI.
 	if active_touch >= 0:
 		if event is InputEventScreenDrag and event.index == active_touch:
@@ -347,7 +402,7 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if ended or suspended or starting:
+	if ended or suspended or starting or waiting_for_start:
 		return
 	if event is InputEventScreenTouch:
 		# A tap and a drag both commit on release, never on touch-down.
@@ -381,7 +436,7 @@ func _inside_drop_area(at: Vector2) -> bool:
 	return in_belly or in_upper_body or in_opening
 
 func _drop() -> void:
-	if ended or suspended or starting or cooldown > 0 or pending_exchange:
+	if ended or suspended or starting or waiting_for_start or cooldown > 0 or pending_exchange:
 		return
 	_set_aim(aim_x)
 	# Never spawn overlapping an existing coin near the mouth of the jar.
@@ -413,7 +468,7 @@ func _spawn_coin(tier: int, at: Vector2) -> CoinBody:
 	return coin
 
 func _physics_process(delta: float) -> void:
-	if ended or suspended or starting:
+	if ended or suspended or starting or waiting_for_start:
 		return
 	var direction := float(Input.is_physical_key_pressed(KEY_RIGHT) or Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_LEFT) or Input.is_physical_key_pressed(KEY_A))
 	if direction != 0:
@@ -430,7 +485,7 @@ func _physics_process(delta: float) -> void:
 func _process(delta: float) -> void:
 	if suspended:
 		return
-	if not starting and not ended:
+	if not starting and not ended and not waiting_for_start:
 		chipmunk.advance(delta)
 	for effect in effects:
 		effect.life -= delta
@@ -622,7 +677,7 @@ func _draw() -> void:
 		for x in [816, 960]:
 			for point in [Vector2(0, 0), Vector2(4, 4), Vector2(8, 8), Vector2(4, 12), Vector2(0, 16)]:
 				draw_rect(Rect2(Vector2(x, 96) + point, Vector2(4, 4)), MUTED)
-	if not ended and not suspended and not starting:
+	if not ended and not suspended and not starting and not waiting_for_start:
 		_draw_aim()
 
 func _draw_aim() -> void:
