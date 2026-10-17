@@ -24,6 +24,7 @@ var landing_cooldown := 0.0
 var result_mode := false
 var music_level := -10.0
 var music_tween: Tween
+var music_started := false
 
 func _ready() -> void:
 	music = AudioStreamPlayer.new()
@@ -52,8 +53,10 @@ func restart() -> void:
 	stop_effects()
 	set_suspended(false)
 	landing_cooldown = 0
-	# Retrying resumes the existing timeline, including from pause or results.
-	if music.stream and not music.playing:
+	# Start exactly once. Web sample playback can report inactive while its
+	# asynchronous worklet is starting; a retry must not create another player.
+	if music.stream and not music_started:
+		music_started = true
 		music.play(0)
 
 func stop_effects() -> void:
@@ -68,6 +71,10 @@ func set_muted(value: bool) -> void:
 		stop_effects()
 
 func set_suspended(value: bool) -> void:
+	# Web Audio's sample backend rebuilds its source on every unpause call,
+	# even when it was already running. Results/retries must not send one.
+	if suspended == value:
+		return
 	suspended = value
 	music.stream_paused = value
 	for voice in voices:

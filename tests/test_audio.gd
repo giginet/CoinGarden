@@ -93,9 +93,13 @@ func _run() -> void:
 	check(audio.voices.all(func(p): return not p.stream_paused and not p.playing), "retry clears paused effects")
 	await create_timer(0.1).timeout
 	check(audio.music.get_playback_position() >= paused_position and audio.music.get_playback_position() < paused_position + 0.3, "paused retry preserves BGM position")
+	var before_result: float = audio.music.get_playback_position()
+	var continuous_playback: AudioStreamPlayback = audio.music.get_stream_playback()
 	game._game_over()
 	check(audio.music.playing and _is_playing(audio, "game_over"), "game over keeps BGM and plays result cue")
 	await create_timer(0.5).timeout
+	check(audio.music.get_playback_position() >= before_result and audio.music.get_playback_position() < before_result + 0.8, "game over continues from the same position while lowering volume")
+	check(audio.music.get_stream_playback() == continuous_playback, "game over retains the same BGM playback")
 	check(is_equal_approx(audio.music.volume_db, -13.0), "result BGM fades down gently by 3 dB")
 	check(_is_playing(audio, "game_over"), "long game-over cue continues through result animation")
 	game._toggle_sound()
@@ -105,6 +109,19 @@ func _run() -> void:
 	check(audio.music.playing and audio.music.volume_db <= -80, "retry preserves mute")
 	await create_timer(0.1).timeout
 	check(audio.music.get_playback_position() >= muted_position and audio.music.get_playback_position() < muted_position + 0.3, "muted result retry preserves BGM timeline")
+	check(audio.music.get_stream_playback() == continuous_playback, "result retry retains the same BGM playback")
+	# Repeat the transitions inside the looping section as well as the intro.
+	audio.music.seek(95.0)
+	await create_timer(0.1).timeout
+	var loop_position: float = audio.music.get_playback_position()
+	continuous_playback = audio.music.get_stream_playback()
+	for i in 3:
+		game._game_over()
+		await create_timer(0.15).timeout
+		game.restart()
+		await create_timer(0.1).timeout
+	check(audio.music.get_playback_position() >= loop_position and audio.music.get_playback_position() < loop_position + 1.2, "repeated game overs and retries do not jump within the loop section")
+	check(audio.music.get_stream_playback() == continuous_playback, "repeated transitions do not replace the loop playback")
 	audio.music.stop()
 	audio.stop_effects()
 	await create_timer(0.1).timeout
