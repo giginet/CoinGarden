@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#24233d">
+  <meta name="description" content="コインを落として、つなげて両替。豚の貯金箱で遊ぶドット絵の落ち物パズル、CoinGarden。">
+  <title>CoinGarden</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #17152b; color: #fff1c5; }
+    body { font-family: ui-monospace, monospace; }
+    canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+    #launch { position: fixed; inset: 0; display: grid; place-items: center; background: #24233d; padding: 24px; }
+    #launch[hidden] { display: none; }
+    .card { text-align: center; width: min(480px, 100%); border: 4px solid #c99743; box-shadow: 8px 8px #17152b; padding: 36px 24px; }
+    h1 { font-size: clamp(28px, 7vw, 44px); color: #f5d478; letter-spacing: -2px; margin: 0 0 20px; }
+    .coin { width: 72px; height: 72px; image-rendering: pixelated; margin-bottom: 16px; }
+    p { line-height: 1.8; font-size: 14px; }
+    button { border: 4px solid #f5d478; background: #593448; color: #fff1c5; padding: 14px 40px; font: bold 24px ui-monospace, monospace; cursor: pointer; margin-top: 12px; box-shadow: 4px 4px #17152b; }
+    button:hover, button:focus-visible { background: #945069; outline: 2px solid #fff1c5; outline-offset: 4px; }
+    button:disabled { opacity: .5; cursor: wait; }
+    progress { width: 100%; accent-color: #f5d478; height: 12px; }
+    #message { min-height: 26px; color: #aaa2bc; }
+    .help { color: #aaa2bc; font-size: 12px; margin-top: 24px; }
+  </style>
+  <link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+</head>
+<body>
+  <canvas id="canvas" tabindex="0" aria-label="CoinGarden ゲーム画面"></canvas>
+  <div id="launch">
+    <main class="card">
+      <img class="coin" src="coin.png" alt="金色の500円コイン">
+      <h1>CoinGarden</h1>
+      <p>コインを落として、つなげて両替。<br>連鎖をつくってハイスコアを目指そう。</p>
+      <progress id="progress" aria-label="ゲームの読み込み"></progress>
+      <p id="message" role="status">読み込み中…</p>
+      <button id="play" type="button" disabled>PLAY</button>
+      <p class="help">クリック・タップで落下 ／ ← → で移動<br>Spaceで落下 ／ Escで一時停止<br>音が出ます。ゲーム内の ♪ で切り替えられます。</p>
+    </main>
+  </div>
+  <noscript>このゲームを遊ぶにはJavaScriptを有効にしてください。</noscript>
+  <script src="index.js"></script>
+  <script>
+    const config = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":1201584,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+    const progress = document.getElementById('progress');
+    const message = document.getElementById('message');
+    const play = document.getElementById('play');
+    config.onProgress = (current, total) => {
+      if (total > 0) { progress.max = total; progress.value = current; }
+    };
+    const engine = new Engine(config);
+    const fail = error => {
+      console.error(error);
+      message.textContent = '読み込めませんでした。ページを再読み込みしてください。';
+      play.disabled = true;
+    };
+    const missing = Engine.getMissingFeatures({ threads: false });
+    if (missing.length) {
+      message.textContent = 'WebGL 2に対応したブラウザで開いてください。';
+    } else {
+      Promise.all([
+        engine.init(config.executable),
+        engine.preloadFile(config.executable + '.pck'),
+      ]).then(() => {
+        progress.hidden = true;
+        message.textContent = '準備ができました';
+        play.disabled = false;
+        play.focus();
+      }).catch(fail);
+    }
+    play.addEventListener('click', () => {
+      play.disabled = true;
+      message.textContent = 'スタート！';
+      engine.start({ args: ['--main-pack', config.executable + '.pck'] }).then(() => {
+        document.getElementById('launch').hidden = true;
+        document.getElementById('canvas').focus();
+      }).catch(fail);
+    });
+  </script>
+</body>
+</html>
+
